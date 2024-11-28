@@ -11,8 +11,26 @@
  * Learn more at https://developers.cloudflare.com/workers/
  */
 
-export default {
-	async fetch(request, env, ctx): Promise<Response> {
-		return new Response('Hello World!');
-	},
-} satisfies ExportedHandler<Env>;
+import { RpcTarget, WorkerEntrypoint } from 'cloudflare:workers';
+
+export default class extends WorkerEntrypoint<Env> {
+	async fetch() {
+		return new Response('Hello from Worker B');
+	}
+
+	async parse() {
+		return "test"
+	}
+}
+
+//export class OGWorker extends WorkerEntrypoint<Env> {
+//	async og(f: string, inComponentAsString?: string) {
+//		return new OGImage().image(f, inComponentAsString)
+//	}
+//}
+//
+//export class OGImage extends RpcTarget {
+//	image(f: string, inComponentAsString?: string) {
+//		return OG(f, inComponentAsString)
+//	}
+//}
