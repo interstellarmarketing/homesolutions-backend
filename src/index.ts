@@ -12,6 +12,7 @@
  */
 
 import { RpcTarget, WorkerEntrypoint } from 'cloudflare:workers';
+import { uspsZipLookupParser, UspsZipLookupParser } from './zoddles/usps/uspsLookup';
 
 export default class extends WorkerEntrypoint<Env> {
 	async fetch() {
@@ -20,6 +21,71 @@ export default class extends WorkerEntrypoint<Env> {
 
 	async parse() {
 		return "test"
+	}
+
+	async fuckThisShit(testString: string) {
+
+		return testString.split("").map(x => x + "xx").join("")
+	}
+}
+
+export class Testes extends WorkerEntrypoint<Env> {
+	async yalla() {
+		return "px"
+	}
+
+	async listAllZips(): Promise<UspsZipLookupParser[]> {
+		const kvStash = this.env.contracting_estimates
+
+		const listAll = await kvStash.list({ prefix: "zip:" })
+
+		const parsedMetadata = listAll.keys.map(x => {
+			const parseMeta = uspsZipLookupParser.safeParse(x.metadata)
+			if (parseMeta.success) {
+				return parseMeta.data
+			} else {
+				return false
+			}
+		})
+
+		return parsedMetadata.filter(x => !!x) as UspsZipLookupParser[]
+	}
+
+}
+
+export class Zips extends WorkerEntrypoint<Env> {
+
+	async newZipMethods() {
+		return new ZipMethods(this.env)
+	}
+
+}
+
+export class ZipMethods extends RpcTarget {
+
+	#env: Env
+
+	constructor(env: Env) {
+		super();
+		this.#env = env;
+	}
+
+
+	async listAllZips(): Promise<UspsZipLookupParser[]> {
+		const kvStash = this.#env.contracting_estimates
+
+		const listAll = await kvStash.list({ prefix: "zip:" })
+
+		const parsedMetadata = listAll.keys.map(x => {
+			const parseMeta = uspsZipLookupParser.safeParse(x.metadata)
+			if (parseMeta.success) {
+				return parseMeta.data
+			} else {
+				return false
+			}
+		})
+
+		return parsedMetadata.filter(x => !!x) as UspsZipLookupParser[]
 	}
 }
 
