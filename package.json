@@ -1,6 +1,6 @@
 {
   "name": "be-rpc-estimates",
-  "version": "0.0.0",
+  "version": "0.0.0-alpha-0.1",
   "private": true,
   "scripts": {
     "deploy": "wrangler deploy",
@@ -14,6 +14,9 @@
     "@cloudflare/workers-types": "^4.20241127.0",
     "typescript": "^5.7.2",
     "vitest": "2.0.5",
-    "wrangler": "^3.91.0"
+    "wrangler": "3.80.0"
+  },
+  "dependencies": {
+    "zod": "^3.23.8"
   }
 }
