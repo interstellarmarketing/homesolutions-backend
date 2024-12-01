@@ -2,4 +2,5 @@
 
 interface Env {
 	contracting_estimates: KVNamespace;
+	DB: D1Database;
 }

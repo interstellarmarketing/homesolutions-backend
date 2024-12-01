@@ -15,6 +15,13 @@ enabled = true
 [[kv_namespaces]]
 binding = "contracting_estimates"
 id = "41b4b6e293cc4623b723177d6a7d032b"
+
+[[d1_databases]]
+binding = "DB" # i.e. available in your Worker on env.DB
+database_name = "estimates-zach-submissions"
+database_id = "1b9c910e-19b9-4c2f-8793-1335a697455b"
+migrations_dir = "drizzle"
+
 # Automatically place your workloads in an optimal location to minimize latency.
 # If you are running back-end logic in a Worker, running it closer to your back-end infrastructure
 # rather than the end user may result in better performance.

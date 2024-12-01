@@ -1,6 +1,6 @@
 {
   "name": "be-rpc-estimates",
-  "version": "0.0.0-alpha-0.1",
+  "version": "0.0.0-alpha-0.5",
   "private": true,
   "scripts": {
     "deploy": "wrangler deploy",
@@ -12,11 +12,14 @@
   "devDependencies": {
     "@cloudflare/vitest-pool-workers": "^0.5.32",
     "@cloudflare/workers-types": "^4.20241127.0",
+    "drizzle-kit": "^0.28.1",
     "typescript": "^5.7.2",
     "vitest": "2.0.5",
     "wrangler": "3.80.0"
   },
   "dependencies": {
+    "drizzle-orm": "^0.36.4",
+    "drizzle-zod": "^0.5.1",
     "zod": "^3.23.8"
   }
 }
