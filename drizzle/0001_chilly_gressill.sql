@@ -1,0 +1,1 @@
+ALTER TABLE `submissions` ADD `user_id` integer;
