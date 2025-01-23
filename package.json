@@ -4,18 +4,18 @@
   "private": true,
   "scripts": {
     "deploy": "wrangler deploy",
-    "dev": "wrangler dev",
+    "dev": "wrangler dev --local",
     "start": "wrangler dev",
     "test": "vitest",
     "cf-typegen": "wrangler types"
   },
   "devDependencies": {
     "@cloudflare/vitest-pool-workers": "^0.5.32",
-    "@cloudflare/workers-types": "^4.20241127.0",
+    "@cloudflare/workers-types": "^4.20241230.0",
     "drizzle-kit": "^0.28.1",
     "typescript": "^5.7.2",
     "vitest": "2.0.5",
-    "wrangler": "3.80.0"
+    "wrangler": "^3.105.0"
   },
   "dependencies": {
     "drizzle-orm": "^0.36.4",

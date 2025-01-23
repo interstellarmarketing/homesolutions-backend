@@ -1,209 +1,175 @@
 import { RpcTarget, WorkerEntrypoint, WorkflowEntrypoint, WorkflowStep, WorkflowEvent } from 'cloudflare:workers';
-import { uspsZipLookupParser, UspsZipLookupParser } from './zoddles/usps/uspsLookup';
-import { drizzle, DrizzleD1Database } from 'drizzle-orm/d1';
-import { submissions, users } from './db/schema';
+import { uspsZipLookupParser, type UspsZipLookupParser } from './zoddles/usps/uspsLookup';
+import { drizzle, type DrizzleD1Database } from 'drizzle-orm/d1';
+import { formSubmissions } from './db/schema';
 import { and, eq } from 'drizzle-orm';
-import { EstimateStoreType } from './zoddles/user/userEstimateType';
+import { type FormSubmissionType } from './zoddles/form-submission/formSubmissionType';
 import * as schema from "./db/schema";
 
+/**
+ * Main Worker class for handling HTTP requests
+ */
 export default class extends WorkerEntrypoint<Env> {
 	async fetch() {
 		return new Response('Hello from Worker B');
 	}
-
 }
 
-//export class TestWorfklow extends WorkflowEntrypoint<Env> {
-//
-//	async run(event: WorkflowEvent<Params>, step: WorkflowStep) {
-//
-//		const step1 = await step.do("step 1", async () => {
-//			return {
-//				inputParams: event,
-//				files: [
-//					'doc_7392_rev3.pdf',
-//					'report_x29_final.pdf',
-//					'memo_2024_05_12.pdf',
-//					'file_089_update.pdf',
-//					'proj_alpha_v2.pdf',
-//					'data_analysis_q2.pdf',
-//					'notes_meeting_52.pdf',
-//					'summary_fy24_draft.pdf',
-//				],
-//			};
-//		})
-//
-//
-//	}
-//}
-
+/**
+ * Database operations handler using Cloudflare D1
+ */
 class D1 extends RpcTarget {
-
-	env: Env;
-	db: DrizzleD1Database<typeof schema>
+	private readonly env: Env;
+	private readonly db: DrizzleD1Database<typeof schema>;
 
 	constructor(env: Env) {
 		super();
 		this.env = env;
-		this.db = drizzle(env.DB, { schema })
+		this.db = drizzle(env.DB, { schema });
 	}
 
-
-	async listAllRecords(): Promise<schema.SelectUsersWithSubmissions[]> {
-		const getAll = this.db.query.users.findMany({
-			with: {
-				subs: true
-			}
-		})
-
-		return getAll
+	/**
+	 * Retrieves all form submissions from the database
+	 * @returns Promise<Array<FormSubmission>>
+	 */
+	async listAllRecords(): Promise<schema.SelectFormSubmissions[]> {
+		return this.db.select().from(formSubmissions);
 	}
 
-	async insertSubmission(userInfo: EstimateStoreType, subSource: schema.SelectSubmissions["source"]): Promise<schema.SelectUsersWithSubmissions> {
+	/**
+	 * Inserts a new form submission into the database
+	 * Checks for existing submissions with the same email and phone
+	 * @param submissionData - The form submission data
+	 * @returns Promise<FormSubmission>
+	 */
+	async insertSubmission(submissionData: FormSubmissionType): Promise<schema.SelectFormSubmissions> {
+		const timeNow = new Date(Date.now());
 
-		const checkExisting = await this.db.select().from(users).where(and(eq(users.email, userInfo.email), (eq(users.phone, userInfo.phone)))).limit(1)
+		// Check for existing submission with same email and phone
+		const checkExisting = await this.db.select()
+			.from(formSubmissions)
+			.where(
+				and(
+					eq(formSubmissions.email, submissionData.email),
+					eq(formSubmissions.phone, submissionData.phone)
+				)
+			)
+			.limit(1);
 
-		const timeNow = new Date(Date.now())
-
-		let returnObject: schema.SelectUsersWithSubmissions
-
-		if (!checkExisting.length) {
-
-			const submitNewUser = await this.db.insert(users).values({
-				...userInfo,
+		// Insert new submission
+		const insertResult = await this.db.insert(formSubmissions)
+			.values({
+				...submissionData,
 				createdAt: timeNow
-			}).returning()
+			})
+			.returning();
 
-			const insertSubmission = await this.db.insert(submissions).values({
-				userId: submitNewUser[0].id,
-				shortTrade: userInfo.estimateShortTrade,
-				action: userInfo.estimateAction,
-				additionalType: userInfo.estimateType,
-				source: subSource,
-				createdAt: timeNow
-			}).returning()
-
-			returnObject = {
-				...submitNewUser[0],
-				subs: insertSubmission
-			}
-		} else {
-			const userId = checkExisting[0]?.id
-
-			const insertSubmission = await this.db.insert(submissions).values({
-				userId: userId,
-				shortTrade: userInfo.estimateShortTrade,
-				action: userInfo.estimateAction,
-				additionalType: userInfo.estimateType,
-				source: subSource,
-				createdAt: timeNow
-			}).returning()
-
-			returnObject = {
-				...checkExisting[0],
-				subs: insertSubmission
-			}
-		}
-
-		return returnObject
+		return insertResult[0];
 	}
 }
 
+/**
+ * Worker class that exposes D1 database methods
+ */
 export class D1Worker extends WorkerEntrypoint<Env> {
 	async D1Methods() {
-		return new D1(this.env)
+		return new D1(this.env);
 	}
 }
 
-
+/**
+ * Worker class that exposes ZIP code lookup methods
+ */
 export class Zips extends WorkerEntrypoint<Env> {
 	async newZipMethods() {
-		return new ZipMethods(this.env)
+		return new ZipMethods(this.env);
 	}
 }
 
-const kvPrefixFormatter = (kvPrefix: string, zip: string) => `${kvPrefix}:${zip}`
+/**
+ * Formats the KV prefix for ZIP code lookups
+ * @param kvPrefix - The prefix to use
+ * @param zip - The ZIP code
+ * @returns Formatted KV key
+ */
+const kvPrefixFormatter = (kvPrefix: string, zip: string): string => 
+	`${kvPrefix}:${zip}`;
 
+/**
+ * Handles ZIP code lookup operations using USPS API and KV cache
+ */
 class ZipMethods extends RpcTarget {
-
-	private env: Env;
+	private readonly env: Env;
 
 	constructor(env: Env) {
 		super();
 		this.env = env;
 	}
 
+	/**
+	 * Retrieves all ZIP codes from KV storage
+	 * @returns Promise<Array<UspsZipLookupParser>>
+	 */
 	async listAllZips(): Promise<UspsZipLookupParser[]> {
-		const kvStash = this.env.contracting_estimates
+		const kvStash = this.env.contracting_estimates;
+		const listAll = await kvStash.list({ prefix: "zip:" });
 
-		const listAll = await kvStash.list({ prefix: "zip:" })
-
-		const parsedMetadata = listAll.keys.map(x => {
-			const parseMeta = uspsZipLookupParser.safeParse(x.metadata)
-			if (parseMeta.success) {
-				return parseMeta.data
-			} else {
-				return false
-			}
-		})
-
-		return parsedMetadata.filter(x => !!x) as UspsZipLookupParser[]
+		return listAll.keys
+			.map(x => {
+				const parseMeta = uspsZipLookupParser.safeParse(x.metadata);
+				return parseMeta.success ? parseMeta.data : false;
+			})
+			.filter((x): x is UspsZipLookupParser => !!x);
 	}
 
+	/**
+	 * Looks up ZIP code information using USPS API with KV caching
+	 * @param zip - The ZIP code to look up
+	 * @returns Promise<UspsZipLookupParser>
+	 * @throws Error if USPS API request fails or returns invalid data
+	 */
 	async uspsZipCheck(zip: string): Promise<UspsZipLookupParser> {
-		const kvStash = this.env.contracting_estimates
+		const kvStash = this.env.contracting_estimates;
+		const kvPrefix = kvPrefixFormatter("zip", zip);
 
-		const kvPrefix = kvPrefixFormatter("zip", zip)
-
-		const checkZip = await kvStash.getWithMetadata(kvPrefix)
-
+		// Try to get from cache first
+		const checkZip = await kvStash.getWithMetadata(kvPrefix);
 		if (checkZip.metadata !== null) {
-			console.log("hit kv cache")
-			const parsedMetadata = uspsZipLookupParser.safeParse(checkZip.metadata)
-
+			const parsedMetadata = uspsZipLookupParser.safeParse(checkZip.metadata);
 			if (parsedMetadata.success) {
-				return parsedMetadata.data
+				console.log("hit kv cache");
+				return parsedMetadata.data;
 			}
 		}
 
-		const getZipResult = await fetch("https://tools.usps.com/tools/app/ziplookup/cityByZip", {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
-				"Accept": "application/json, text/javascript, */*; q=0.01",
-				"Sec-Fetch-Site": "same-origin",
-				"Accept-Language": "en-US,en;q=0.9",
-				"Accept-Encoding": "gzip, deflate, br",
-				"Sec-Fetch-Mode": "cors",
-				"Host": "tools.usps.com",
-				"Origin": "https://tools.usps.com",
-				"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.6 Safari/605.1.15",
-				"Referer": "https://tools.usps.com/zip-code-lookup.htm?citybyzipcode",
-				"Connection": "keep-alive",
-				"Sec-Fetch-Dest": "empty",
-				"X-Requested-With": "XMLHttpRequest",
-			},
-			body: new URLSearchParams({
-				zip
-			}),
-			redirect: "follow"
-		});
+		// If not in cache, fetch from USPS API
+		const getZipResult = await fetch(
+			"https://tools.usps.com/tools/app/ziplookup/cityByZip",
+			{
+				method: "POST",
+				headers: {
+					"Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+					"Accept": "application/json, text/javascript, */*; q=0.01",
+				},
+				body: new URLSearchParams({ zip }),
+				redirect: "follow"
+			}
+		);
 
 		if (!getZipResult.ok) {
 			throw new Error("Failed to get zip from USPS");
 		}
 
-		const parsedResult = uspsZipLookupParser.safeParse(await getZipResult.json())
-
+		const parsedResult = uspsZipLookupParser.safeParse(await getZipResult.json());
 		if (!parsedResult.success) {
 			throw new Error("Failed: parsing returned json from USPS");
 		}
 
-		const uspsJson = parsedResult.data
+		// Cache the result
+		const uspsJson = parsedResult.data;
+		await kvStash.put(kvPrefix, JSON.stringify(uspsJson), { metadata: uspsJson });
 
-		await this.env.contracting_estimates.put(kvPrefix, JSON.stringify(uspsJson), { metadata: uspsJson })
-
-		return uspsJson
+		return uspsJson;
 	}
 }
 

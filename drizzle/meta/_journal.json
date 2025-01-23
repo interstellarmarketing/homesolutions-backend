@@ -15,6 +15,20 @@
       "when": 1733011800929,
       "tag": "0001_chilly_gressill",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1737602894628,
+      "tag": "0002_heavy_ares",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1737621094041,
+      "tag": "0003_mature_roughhouse",
+      "breakpoints": true
     }
   ]
 }
