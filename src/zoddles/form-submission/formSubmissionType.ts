@@ -17,37 +17,39 @@ export const formSubmissionParser = z.object({
 
 	// Required qualification fields
 	isHomeowner: z.boolean(),
-	source: z.literal("home_improvement"),
 	shortTrade: z.string(),
 	action: z.string(),
-	additionalType: z.string().nullable(),
+	additionalType: z.string().optional(),
 
 	// Optional property information
-	homeType: z.enum(["single_family", "multi_family", "mobile_home", "other"]).nullable(),
-	utilityBill: z.number().int().min(0).max(10000).nullable(),
-	creditScore: z.enum(["excellent", "good", "fair", "poor", "unknown"]).nullable(),
+	homeType: z.enum(["single_family", "multi_family", "mobile_home", "other"]).optional(),
+	utilityBill: z.number().int().min(0).max(10000).optional(),
+	creditScore: z.enum(["excellent", "good", "fair", "poor", "unknown"]).optional(),
 
 	// Optional solar-specific fields
-	roofShade: z.enum(["none", "partial", "full"]).nullable(),
-	solarReason: z.enum(["save_money", "environment", "independence", "other"]).nullable(),
-	roofType: z.enum(["asphalt", "metal", "tile", "flat", "other"]).nullable(),
-	projectType: z.enum(["residential", "commercial", "non_profit"]).nullable(),
+	roofShade: z.enum(["none", "partial", "full"]).optional(),
+	roofType: z.enum(["asphalt", "cedar shake", "metal", "natural slate", "shingles", "tar", "tile", "other"]).optional(),
+	solarReason: z.enum(["save_money", "environment", "independence", "other"]).optional(),
+	projectType: z.enum(["residential", "commercial", "non_profit"]).optional(),
 
 	// System fields (populated by backend)
-	ipAddress: z.string(),
-	deviceCategory: z.enum(["mobile", "desktop", "tablet"]),
-	landingPage: z.string(),
-	placement: z.string(),
+	ipAddress: z.string().optional(),
+	deviceCategory: z.enum(["mobile", "desktop", "tablet"]).optional(),
 
 	// Marketing attribution
-	utmSource: z.string().nullable(),
-	utmMedium: z.string().nullable(),
-	utmCampaign: z.string().nullable(),
-	utmTerm: z.string().nullable(),
-	utmContent: z.string().nullable(),
-	utmId: z.string().nullable(),
-	fbclid: z.string().nullable(),
-	gclid: z.string().nullable(),
+	utmSource: z.string().optional(),
+	utmMedium: z.string().optional(),
+	utmCampaign: z.string().optional(),
+	utmTerm: z.string().optional(),
+	utmContent: z.string().optional(),
+	utmId: z.string().optional(),
+	fbclid: z.string().optional(),
+	gclid: z.string().optional(),
+	wbraid: z.string().optional(),
+	gbraid: z.string().optional(),
+	ssn: z.string().optional(),
+	trustedFormCertUrl: z.string().optional(),
+	trustedFormPingUrl: z.string().optional(),
 })
 
 export type FormSubmissionType = z.infer<typeof formSubmissionParser>

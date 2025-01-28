@@ -7,7 +7,10 @@
     "dev": "wrangler dev --local",
     "start": "wrangler dev",
     "test": "vitest",
-    "cf-typegen": "wrangler types"
+    "cf-typegen": "wrangler types",
+    "migrate:preview": "npx wrangler d1 migrations apply estimates-zach-submissions --preview --remote",
+    "migrate:production": "npx wrangler d1 migrations apply estimates-zach-submissions --remote"
+    
   },
   "devDependencies": {
     "@cloudflare/vitest-pool-workers": "^0.5.32",

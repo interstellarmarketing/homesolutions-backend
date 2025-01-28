@@ -53,7 +53,7 @@ const TradeSchemas = {
 	roofing: z.object({
 		shortTrade: z.literal("roofing"),
 		data: extendEstimateOptionSchema({
-			type: z.enum(["asphalt", "tile", "flat", "metal", "wood"]),
+			type: z.enum(["asphalt", "cedar shake", "metal", "natural slate", "shingles", "tar", "tile", "other"]),
 		}),
 	}),
 	
@@ -124,7 +124,7 @@ export const shortTradeObjects = [
 	}),
 	createShortTradeObject("roofing", {
 		estimateAction: ["replace", "repair"],
-		type: ["asphalt", "tile", "flat", "metal", "wood"],
+		type: ["asphalt", "cedar shake", "metal", "natural slate", "shingles", "tar", "tile", "other"],
 	}),
 	createShortTradeObject("siding", {
 		estimateAction: ["replace", "repair"],

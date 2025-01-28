@@ -1,4 +1,3 @@
-import { sql } from "drizzle-orm";
 import {
 	text,
 	integer,
@@ -30,7 +29,7 @@ export const formSubmissions = sqliteTable("form_submissions", {
 	source: text("source", { enum: ["home_improvement"] }),
 	shortTrade: text("short_trade"),
 	action: text("action"),
-	additionalType: text("additional_type"),
+    estimateType: text("estimate_type"),
 
 	// Technical tracking
 	ipAddress: text("ip_address"),
@@ -54,27 +53,25 @@ export const formSubmissions = sqliteTable("form_submissions", {
 		enum: ["save_money", "environment", "independence", "other"]
 	}),
 	roofType: text("roof_type", {
-		enum: ["asphalt", "metal", "tile", "flat", "other"]
+		enum: ["asphalt", "cedar shake", "metal", "natural slate", "shingles", "tar", "tile", "other"]
 	}),
 	projectType: text("project_type", {
 		enum: ["residential", "commercial", "non_profit"]
 	}),
 
-	// Marketing attribution
-	landingPage: text("landing_page"),    // URL where form was submitted
-	placement: text("placement"),          // Location of form on page
-
 	// UTM parameters for tracking marketing campaigns
-	utmSource: text("utm_source"),        // Traffic source (e.g., google, facebook)
-	utmMedium: text("utm_medium"),        // Marketing medium (e.g., cpc, email)
-	utmCampaign: text("utm_campaign"),    // Campaign name
-	utmTerm: text("utm_term"),            // Search terms used
-	utmContent: text("utm_content"),      // Content variant identifier
-	utmId: text("utm_id"),                // Campaign ID
-
-	// Platform-specific tracking IDs
-	fbclid: text("fbclid"),               // Facebook click identifier
-	gclid: text("gclid"),                 // Google Ads click identifier
+	utmSource: text("utm_source"),
+    utmMedium: text("utm_medium"),
+    utmCampaign: text("utm_campaign"),
+    utmContent: text("utm_content"),
+    utmTerm: text("utm_term"),
+    fbclid: text("fbclid"),
+    gclid: text("gclid"),
+    wbraid: text("wbraid"),                    // New tracking parameter
+    gbraid: text("gbraid"),                    // New tracking parameter
+    ssn: text("ssn"),                          // New tracking parameter
+    trustedFormCertUrl: text("trusted_form_cert_url"),  // New tracking parameter
+    trustedFormPingUrl: text("trusted_form_ping_url"),  // New tracking parameter
 
 	// Device information
 	deviceCategory: text("device_category", {

@@ -28,6 +28,7 @@ class D1 extends RpcTarget {
 		this.db = drizzle(env.DB, { schema });
 	}
 
+
 	/**
 	 * Retrieves all form submissions from the database
 	 * @returns Promise<Array<FormSubmission>>
@@ -45,16 +46,22 @@ class D1 extends RpcTarget {
 	async insertSubmission(submissionData: FormSubmissionType): Promise<schema.SelectFormSubmissions> {
 		const timeNow = new Date(Date.now());
 
+		console.log("submissionData", submissionData);
+
 		// Check for existing submission with same email and phone
-		const checkExisting = await this.db.select()
-			.from(formSubmissions)
-			.where(
-				and(
-					eq(formSubmissions.email, submissionData.email),
-					eq(formSubmissions.phone, submissionData.phone)
-				)
-			)
-			.limit(1);
+		// const checkExisting = await this.db.select()
+		// 	.from(formSubmissions)
+		// 	.where(
+		// 		and(
+		// 			eq(formSubmissions.email, submissionData.email),
+		// 			eq(formSubmissions.phone, submissionData.phone)
+		// 		)
+		// 	)
+		// 	.limit(1);
+
+		// if (checkExisting.length > 0) {
+		// 	throw new Error("Submission already exists");
+		// }
 
 		// Insert new submission
 		const insertResult = await this.db.insert(formSubmissions)
@@ -63,6 +70,8 @@ class D1 extends RpcTarget {
 				createdAt: timeNow
 			})
 			.returning();
+
+		console.log("insertResult", insertResult);	
 
 		return insertResult[0];
 	}
@@ -136,6 +145,7 @@ class ZipMethods extends RpcTarget {
 		const checkZip = await kvStash.getWithMetadata(kvPrefix);
 		if (checkZip.metadata !== null) {
 			const parsedMetadata = uspsZipLookupParser.safeParse(checkZip.metadata);
+			console.log("parsedMetadata", parsedMetadata);
 			if (parsedMetadata.success) {
 				console.log("hit kv cache");
 				return parsedMetadata.data;

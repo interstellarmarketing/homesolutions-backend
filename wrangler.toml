@@ -6,14 +6,14 @@ compatibility_flags = ["nodejs_compat"]
 # KV namespace configuration
 [[kv_namespaces]]
 binding = "contracting_estimates"
-id = "41b4b6e293cc4623b723177d6a7d032b"
+id = "f460e30034dc4dd8b2a9389029785431"
 preview_id = "067df80249e4426dbbf11cbe6eaca703"
 
 # D1 database configuration
 [[d1_databases]]
 binding = "DB"
 database_name = "estimates-zach-submissions"
-database_id = "1b9c910e-19b9-4c2f-8793-1335a697455b"
+database_id = "12327b12-39b9-4abe-8e1b-2cc84ea5ace2"
 preview_database_id = "f218ce61-8937-48fe-9fb7-30fa8e65ec19"
 migrations_dir = "drizzle"
 
