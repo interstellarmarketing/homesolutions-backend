@@ -18,4 +18,4 @@ preview_database_id = "a435951d-55dc-4e19-b135-cdfbd4eff841"
 migrations_dir = "drizzle"
 
 [vars]
-ENVIRONMENT = "development"
+ENVIRONMENT = "production"
