@@ -14,8 +14,8 @@ preview_id = "067df80249e4426dbbf11cbe6eaca703"
 binding = "DB"
 database_name = "estimates-zach-submissions"
 database_id = "12327b12-39b9-4abe-8e1b-2cc84ea5ace2"
-preview_database_id = "f218ce61-8937-48fe-9fb7-30fa8e65ec19"
+preview_database_id = "a435951d-55dc-4e19-b135-cdfbd4eff841"
 migrations_dir = "drizzle"
 
 [vars]
-ENVIRONMENT = "production"
+ENVIRONMENT = "development"

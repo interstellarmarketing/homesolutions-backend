@@ -4,7 +4,10 @@ import { drizzle, type DrizzleD1Database } from 'drizzle-orm/d1';
 import { formSubmissions } from './db/schema';
 import { and, eq } from 'drizzle-orm';
 import { type FormSubmissionType } from './zoddles/form-submission/formSubmissionType';
-import * as schema from "./db/schema";
+import * as schema from './db/schema';
+import { OutboundController } from './controllers/outbound';
+import { sql } from 'drizzle-orm';
+import { migrate } from 'drizzle-orm/d1/migrator';
 
 /**
  * Main Worker class for handling HTTP requests
@@ -28,7 +31,6 @@ class D1 extends RpcTarget {
 		this.db = drizzle(env.DB, { schema });
 	}
 
-
 	/**
 	 * Retrieves all form submissions from the database
 	 * @returns Promise<Array<FormSubmission>>
@@ -41,12 +43,19 @@ class D1 extends RpcTarget {
 	 * Inserts a new form submission into the database
 	 * Checks for existing submissions with the same email and phone
 	 * @param submissionData - The form submission data
+	 * @param request - The request object
 	 * @returns Promise<FormSubmission>
 	 */
-	async insertSubmission(submissionData: FormSubmissionType): Promise<schema.SelectFormSubmissions> {
+	async insertSubmission(submissionData: FormSubmissionType & { ipAddress?: string }): Promise<schema.SelectFormSubmissions> {
 		const timeNow = new Date(Date.now());
-
-		console.log("submissionData", submissionData);
+		console.log('submissionData', submissionData);
+		console.log({
+			submissions: await this.listAllRecords(),
+		});
+		console.log({
+			db: this.db,
+			tables: await this.listTables(),
+		});
 
 		// Check for existing submission with same email and phone
 		// const checkExisting = await this.db.select()
@@ -64,16 +73,27 @@ class D1 extends RpcTarget {
 		// }
 
 		// Insert new submission
-		const insertResult = await this.db.insert(formSubmissions)
+		const insertResult = await this.db
+			.insert(formSubmissions)
 			.values({
 				...submissionData,
-				createdAt: timeNow
+				createdAt: timeNow,
 			})
 			.returning();
 
-		console.log("insertResult", insertResult);	
+		console.log({ insertResult });
+
+		const outboundController = new OutboundController(this.env);
+		outboundController.processSubmission(insertResult[0].id, 'roofing');
 
 		return insertResult[0];
+	}
+
+	async listTables(): Promise<any> {
+		return await this.db
+			.select({ name: sql`name` })
+			.from(sql`sqlite_schema`)
+			.where(sql`type = 'table'`);
 	}
 }
 
@@ -101,8 +121,7 @@ export class Zips extends WorkerEntrypoint<Env> {
  * @param zip - The ZIP code
  * @returns Formatted KV key
  */
-const kvPrefixFormatter = (kvPrefix: string, zip: string): string => 
-	`${kvPrefix}:${zip}`;
+const kvPrefixFormatter = (kvPrefix: string, zip: string): string => `${kvPrefix}:${zip}`;
 
 /**
  * Handles ZIP code lookup operations using USPS API and KV cache
@@ -121,10 +140,10 @@ class ZipMethods extends RpcTarget {
 	 */
 	async listAllZips(): Promise<UspsZipLookupParser[]> {
 		const kvStash = this.env.contracting_estimates;
-		const listAll = await kvStash.list({ prefix: "zip:" });
+		const listAll = await kvStash.list({ prefix: 'zip:' });
 
 		return listAll.keys
-			.map(x => {
+			.map((x) => {
 				const parseMeta = uspsZipLookupParser.safeParse(x.metadata);
 				return parseMeta.success ? parseMeta.data : false;
 			})
@@ -139,40 +158,37 @@ class ZipMethods extends RpcTarget {
 	 */
 	async uspsZipCheck(zip: string): Promise<UspsZipLookupParser> {
 		const kvStash = this.env.contracting_estimates;
-		const kvPrefix = kvPrefixFormatter("zip", zip);
+		const kvPrefix = kvPrefixFormatter('zip', zip);
 
 		// Try to get from cache first
 		const checkZip = await kvStash.getWithMetadata(kvPrefix);
 		if (checkZip.metadata !== null) {
 			const parsedMetadata = uspsZipLookupParser.safeParse(checkZip.metadata);
-			console.log("parsedMetadata", parsedMetadata);
+			console.log('parsedMetadata', parsedMetadata);
 			if (parsedMetadata.success) {
-				console.log("hit kv cache");
+				console.log('hit kv cache');
 				return parsedMetadata.data;
 			}
 		}
 
 		// If not in cache, fetch from USPS API
-		const getZipResult = await fetch(
-			"https://tools.usps.com/tools/app/ziplookup/cityByZip",
-			{
-				method: "POST",
-				headers: {
-					"Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
-					"Accept": "application/json, text/javascript, */*; q=0.01",
-				},
-				body: new URLSearchParams({ zip }),
-				redirect: "follow"
-			}
-		);
+		const getZipResult = await fetch('https://tools.usps.com/tools/app/ziplookup/cityByZip', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+				Accept: 'application/json, text/javascript, */*; q=0.01',
+			},
+			body: new URLSearchParams({ zip }),
+			redirect: 'follow',
+		});
 
 		if (!getZipResult.ok) {
-			throw new Error("Failed to get zip from USPS");
+			throw new Error('Failed to get zip from USPS');
 		}
 
 		const parsedResult = uspsZipLookupParser.safeParse(await getZipResult.json());
 		if (!parsedResult.success) {
-			throw new Error("Failed: parsing returned json from USPS");
+			throw new Error('Failed: parsing returned json from USPS');
 		}
 
 		// Cache the result
@@ -182,4 +198,3 @@ class ZipMethods extends RpcTarget {
 		return uspsJson;
 	}
 }
-
