@@ -157,7 +157,7 @@ export class OutboundController {
 				.where(eq(formSubmissionsOutbound.id, outboundEntry.id))
 				.get();
 
-			return outboundEntry;
+			return updatedOutboundEntry;
 		} catch (error) {
 			console.error('Error processing submission:', error);
 			throw error;
