@@ -3,7 +3,7 @@ import { formSubmissionsOutbound, formSubmissions, SelectFormSubmissions } from 
 import { eq } from 'drizzle-orm';
 import * as schema from '../db/schema';
 
-type SubmissionType = 'roofing';
+type SubmissionType = 'roofing' | 'solar';
 
 interface ApiConfig {
 	url: string;
@@ -12,11 +12,15 @@ interface ApiConfig {
 }
 
 interface ApiEndpoints {
-	roofing: ApiConfig;
+	[key: string]: {
+		url: string;
+		headers: Record<string, string>;
+		transformData: (submission: any) => Record<string, any>;
+	};
 }
 
 const API_ENDPOINTS: ApiEndpoints = {
-	roofing: {
+	solar: {
 		url: 'https://highrollermarketing.leadlockerroom.com/api/leads',
 		headers: {
 			'Content-Type': 'application/json',
@@ -45,6 +49,32 @@ const API_ENDPOINTS: ApiEndpoints = {
 			hrM_ip_address: submission.ipAddress,
 		}),
 	},
+	roofing: {
+		url: 'https://solardirectmarketing.leadspediatrack.com/post.do',
+		headers: {
+			'Content-Type': 'application/json',
+		},
+		transformData: (submission) => ({
+			lp_campaign_id: '6732679a9df48',
+			lp_campaign_key: 'VC4vnr9RNLp7t6MZbhJm',
+			lp_response: 'JSON',
+			lp_s1: '51R',
+			tcpaText:
+				'By submitting my contact information including my telephone number above, I authorize Erie Home, to contact me via telephone calls and/or text messages (SMS), using automated dialing technology for marketing/advertising purposes. No purchase required. Message and data rates may apply.',
+			first_name: submission.firstName,
+			last_name: submission.lastName,
+			email_address: submission.email,
+			phone_home: submission.phone,
+			address: submission.streetAddress,
+			city: submission.city,
+			state: submission.state,
+			zip_code: submission.zipCode,
+			ip_address: submission.ipAddress,
+			repair_or_replace: submission.projectType,
+			roof_type: submission.projectDetails,
+			trusted_form_cert_id: submission.trustedFormCertUrl,
+		}),
+	},
 };
 
 export class OutboundController {
@@ -60,12 +90,13 @@ export class OutboundController {
 		return true;
 	}
 
-	private async createOutboundEntry(formSubmissionId: number, apiUrl: string) {
+	private async createOutboundEntry(formSubmissionId: number, apiUrl: string, requestBody: any) {
 		return await this.db
 			.insert(formSubmissionsOutbound)
 			.values({
 				formSubmissionId,
 				apiUrl,
+				requestBody,
 				createdAt: new Date(),
 				updatedAt: new Date(),
 			})
@@ -94,68 +125,87 @@ export class OutboundController {
 			.get();
 	}
 
-	async processSubmission(submissionId: number, type: SubmissionType) {
+	async processSubmission(submissionId: number): Promise<any> {
 		if (!this.isEnabled()) {
 			console.log('Outbound processing is disabled. Skipping submission:', submissionId);
 			return null;
 		}
 
 		try {
-			const apiConfig = API_ENDPOINTS[type];
-
-			const outboundEntry = await this.createOutboundEntry(submissionId, apiConfig.url);
-
 			const submission = await this.db.select().from(formSubmissions).where(eq(formSubmissions.id, submissionId)).get();
 
 			if (!submission) {
-				throw new Error('Submission not found');
+				throw new Error(`Submission ${submissionId} not found`);
 			}
 
-			const response = await fetch(apiConfig.url, {
+			// Determine which API to use based on shortTrade
+			const submissionType = (submission.shortTrade?.toLowerCase() || 'solar') as keyof typeof API_ENDPOINTS;
+			const endpoint = API_ENDPOINTS[submissionType];
+
+			const outbound = await this.createOutboundEntry(submissionId, endpoint.url, endpoint.transformData(submission));
+			console.log({ outbound });
+			const response = await fetch(endpoint.url, {
 				method: 'POST',
-				headers: apiConfig.headers,
-				body: JSON.stringify(apiConfig.transformData(submission)),
+				headers: endpoint.headers,
+				body: JSON.stringify(endpoint.transformData(submission)),
 			});
 
-			const responseBody: any = await response.text();
-			const responseBodyJson = JSON.parse(responseBody);
+			const responseBodyJson: any = await response.json();
 
 			if (!response.ok) {
-				await this.updateOutboundEntry(outboundEntry.id, {
-					status: 'failed',
-					statusCode: response.status,
-					responseMessage: response.statusText,
-					responseBody,
-					errorMessage: `API call failed with status ${response.status}`,
-				});
+				console.log(
+					await this.updateOutboundEntry(outbound.id, {
+						status: 'failed',
+						statusCode: response.status,
+						responseMessage: response.statusText,
+						responseBody: JSON.stringify(responseBodyJson),
+						errorMessage: `API call failed with ${response.status}`,
+					})
+				);
 
-				throw new Error(`API call failed with status ${response.status}`);
+				throw new Error(`API call failed with ${response.statusText}`);
+			}
+
+			if (responseBodyJson.result === 'failed') {
+				console.log(
+					await this.updateOutboundEntry(outbound.id, {
+						status: 'failed',
+						statusCode: response.status,
+						responseMessage: responseBodyJson.msg,
+						responseBody: JSON.stringify(responseBodyJson),
+						errorMessage: responseBodyJson.errors[0].error,
+					})
+				);
+
+				throw new Error(`API call failed with ${responseBodyJson.msg}`);
 			}
 
 			if (responseBodyJson.status === 'error') {
-				await this.updateOutboundEntry(outboundEntry.id, {
+				await this.updateOutboundEntry(outbound.id, {
 					status: 'failed',
 					statusCode: response.status,
 					responseMessage: responseBodyJson.message,
-					responseBody,
+					responseBody: JSON.stringify(responseBodyJson),
 					errorMessage: responseBodyJson.message,
 				});
 
-				throw new Error(`API call failed with status ${response.status}`);
+				throw new Error(`API call failed with: ${responseBodyJson.message}`);
 			}
 
-			await this.updateOutboundEntry(outboundEntry.id, {
+			await this.updateOutboundEntry(outbound.id, {
 				status: 'success',
 				statusCode: response.status,
 				responseMessage: response.statusText,
-				responseBody,
+				responseBody: JSON.stringify(responseBodyJson),
 			});
 
 			const updatedOutboundEntry = await this.db
 				.select()
 				.from(formSubmissionsOutbound)
-				.where(eq(formSubmissionsOutbound.id, outboundEntry.id))
+				.where(eq(formSubmissionsOutbound.id, outbound.id))
 				.get();
+
+			console.log({ updatedOutboundEntry });
 
 			return updatedOutboundEntry;
 		} catch (error) {

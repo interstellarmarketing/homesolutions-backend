@@ -50,15 +50,15 @@ class D1 extends RpcTarget {
 		const timeNow = new Date(Date.now());
 
 		// Check for existing submission with same email and phone
-		const checkExisting = await this.db
-			.select()
-			.from(formSubmissions)
-			.where(and(eq(formSubmissions.email, submissionData.email), eq(formSubmissions.phone, submissionData.phone)))
-			.limit(1);
+		// const checkExisting = await this.db
+		// 	.select()
+		// 	.from(formSubmissions)
+		// 	.where(and(eq(formSubmissions.email, submissionData.email), eq(formSubmissions.phone, submissionData.phone)))
+		// 	.limit(1);
 
-		if (checkExisting.length > 0) {
-			throw new Error('Submission already exists');
-		}
+		// if (checkExisting.length > 0) {
+		// 	throw new Error('Submission already exists');
+		// }
 
 		// Insert new submission
 		const insertResult = await this.db
@@ -72,7 +72,7 @@ class D1 extends RpcTarget {
 		console.log({ insertResult });
 
 		const outboundController = new OutboundController(this.env);
-		await outboundController.processSubmission(insertResult[0].id, 'roofing');
+		await outboundController.processSubmission(insertResult[0].id);
 
 		return insertResult[0];
 	}

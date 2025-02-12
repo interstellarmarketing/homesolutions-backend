@@ -95,6 +95,8 @@ export const formSubmissionsOutbound = sqliteTable('form_submissions_outbound', 
 		.notNull()
 		.default('pending'),
 
+	requestBody: text('request_body', { mode: 'json' }),
+
 	// Response information
 	statusCode: integer('status_code'),
 	responseMessage: text('response_message'),
