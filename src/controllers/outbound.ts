@@ -6,6 +6,10 @@ import axios from 'axios';
 
 type SubmissionType = 'roofing' | 'solar';
 
+const transformStringToSpaceAndCapitalizeFirstLetter = (str: string) => {
+	return str.replace(/[_-]/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
+};
+
 interface ApiConfig {
 	url: string;
 	headers: Record<string, string>;
@@ -72,8 +76,9 @@ const API_ENDPOINTS: ApiEndpoints = {
 				state: submission.state,
 				zip_code: submission.zipCode,
 				ip_address: submission.ipAddress,
-				repair_or_replace: submission.projectType,
-				roof_type: submission.projectDetails,
+				repair_or_replace: transformStringToSpaceAndCapitalizeFirstLetter(submission.action),
+				roof_type: transformStringToSpaceAndCapitalizeFirstLetter(submission.roofType),
+				home_type: transformStringToSpaceAndCapitalizeFirstLetter(submission.homeType),
 				trusted_form_cert_id: submission.trustedFormCertUrl,
 			});
 			return params.toString();
