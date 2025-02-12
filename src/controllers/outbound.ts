@@ -2,6 +2,7 @@ import { drizzle } from 'drizzle-orm/d1';
 import { formSubmissionsOutbound, formSubmissions, SelectFormSubmissions } from '../db/schema';
 import { eq } from 'drizzle-orm';
 import * as schema from '../db/schema';
+import axios from 'axios';
 
 type SubmissionType = 'roofing' | 'solar';
 
@@ -15,7 +16,7 @@ interface ApiEndpoints {
 	[key: string]: {
 		url: string;
 		headers: Record<string, string>;
-		transformData: (submission: any) => Record<string, any>;
+		transformData: (submission: any) => Record<string, any> | string;
 	};
 }
 
@@ -52,28 +53,31 @@ const API_ENDPOINTS: ApiEndpoints = {
 	roofing: {
 		url: 'https://solardirectmarketing.leadspediatrack.com/post.do',
 		headers: {
-			'Content-Type': 'application/json',
+			'Content-Type': 'application/x-www-form-urlencoded',
 		},
-		transformData: (submission) => ({
-			lp_campaign_id: '6732679a9df48',
-			lp_campaign_key: 'VC4vnr9RNLp7t6MZbhJm',
-			lp_response: 'JSON',
-			lp_s1: '51R',
-			tcpaText:
-				'By submitting my contact information including my telephone number above, I authorize Erie Home, to contact me via telephone calls and/or text messages (SMS), using automated dialing technology for marketing/advertising purposes. No purchase required. Message and data rates may apply.',
-			first_name: submission.firstName,
-			last_name: submission.lastName,
-			email_address: submission.email,
-			phone_home: submission.phone,
-			address: submission.streetAddress,
-			city: submission.city,
-			state: submission.state,
-			zip_code: submission.zipCode,
-			ip_address: submission.ipAddress,
-			repair_or_replace: submission.projectType,
-			roof_type: submission.projectDetails,
-			trusted_form_cert_id: submission.trustedFormCertUrl,
-		}),
+		transformData: (submission) => {
+			const params = new URLSearchParams({
+				lp_campaign_id: '6732679a9df48',
+				lp_campaign_key: 'VC4vnr9RNLp7t6MZbhJm',
+				lp_response: 'JSON',
+				lp_s1: '51R',
+				tcpaText:
+					'By submitting my contact information including my telephone number above, I authorize Erie Home, to contact me via telephone calls and/or text messages (SMS), using automated dialing technology for marketing/advertising purposes. No purchase required. Message and data rates may apply.',
+				first_name: submission.firstName,
+				last_name: submission.lastName,
+				email_address: submission.email,
+				phone_home: submission.phone,
+				address: submission.streetAddress,
+				city: submission.city,
+				state: submission.state,
+				zip_code: submission.zipCode,
+				ip_address: submission.ipAddress,
+				repair_or_replace: submission.projectType,
+				roof_type: submission.projectDetails,
+				trusted_form_cert_id: submission.trustedFormCertUrl,
+			});
+			return params.toString();
+		},
 	},
 };
 
@@ -144,59 +148,60 @@ export class OutboundController {
 
 			const outbound = await this.createOutboundEntry(submissionId, endpoint.url, endpoint.transformData(submission));
 			console.log({ outbound });
-			const response = await fetch(endpoint.url, {
+			const response = await axios({
 				method: 'POST',
+				url: endpoint.url,
 				headers: endpoint.headers,
-				body: JSON.stringify(endpoint.transformData(submission)),
+				data: endpoint.transformData(submission),
 			});
 
-			const responseBodyJson: any = await response.json();
+			const responseData = response.data;
 
-			if (!response.ok) {
+			if (response.status >= 400) {
 				console.log(
 					await this.updateOutboundEntry(outbound.id, {
 						status: 'failed',
 						statusCode: response.status,
 						responseMessage: response.statusText,
-						responseBody: JSON.stringify(responseBodyJson),
+						responseBody: JSON.stringify(responseData),
 						errorMessage: `API call failed with ${response.status}`,
 					})
 				);
 
-				throw new Error(`API call failed with ${response.statusText}`);
+				throw new Error(`API call failed with ${response.status}`);
 			}
 
-			if (responseBodyJson.result === 'failed') {
+			if (responseData.result === 'failed') {
 				console.log(
 					await this.updateOutboundEntry(outbound.id, {
 						status: 'failed',
 						statusCode: response.status,
-						responseMessage: responseBodyJson.msg,
-						responseBody: JSON.stringify(responseBodyJson),
-						errorMessage: responseBodyJson.errors[0].error,
+						responseMessage: responseData.msg,
+						responseBody: JSON.stringify(responseData),
+						errorMessage: responseData.errors?.[0]?.error || 'Unknown error',
 					})
 				);
 
-				throw new Error(`API call failed with ${responseBodyJson.msg}`);
+				throw new Error(`API call failed with ${responseData.msg}`);
 			}
 
-			if (responseBodyJson.status === 'error') {
+			if (responseData.status === 'error') {
 				await this.updateOutboundEntry(outbound.id, {
 					status: 'failed',
 					statusCode: response.status,
-					responseMessage: responseBodyJson.message,
-					responseBody: JSON.stringify(responseBodyJson),
-					errorMessage: responseBodyJson.message,
+					responseMessage: responseData.message,
+					responseBody: JSON.stringify(responseData),
+					errorMessage: responseData.message,
 				});
 
-				throw new Error(`API call failed with: ${responseBodyJson.message}`);
+				throw new Error(`API call failed with: ${responseData.message}`);
 			}
 
 			await this.updateOutboundEntry(outbound.id, {
 				status: 'success',
 				statusCode: response.status,
 				responseMessage: response.statusText,
-				responseBody: JSON.stringify(responseBodyJson),
+				responseBody: JSON.stringify(responseData),
 			});
 
 			const updatedOutboundEntry = await this.db
