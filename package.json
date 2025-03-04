@@ -1,25 +1,32 @@
 {
-  "name": "be-rpc-estimates",
-  "version": "0.0.0-alpha-0.5",
-  "private": true,
-  "scripts": {
-    "deploy": "wrangler deploy",
-    "dev": "wrangler dev",
-    "start": "wrangler dev",
-    "test": "vitest",
-    "cf-typegen": "wrangler types"
-  },
-  "devDependencies": {
-    "@cloudflare/vitest-pool-workers": "^0.5.32",
-    "@cloudflare/workers-types": "^4.20241127.0",
-    "drizzle-kit": "^0.28.1",
-    "typescript": "^5.7.2",
-    "vitest": "2.0.5",
-    "wrangler": "3.80.0"
-  },
-  "dependencies": {
-    "drizzle-orm": "^0.36.4",
-    "drizzle-zod": "^0.5.1",
-    "zod": "^3.23.8"
-  }
+	"name": "be-rpc-estimates",
+	"version": "0.0.0-alpha-0.5",
+	"private": true,
+	"scripts": {
+		"deploy": "wrangler deploy",
+		"dev": "wrangler dev --local",
+		"start": "wrangler dev",
+		"test": "vitest",
+		"cf-typegen": "wrangler types",
+		"migrate:preview": "npx wrangler d1 migrations apply estimates-zach-submissions --preview --remote",
+		"migrate:production": "npx wrangler d1 migrations apply estimates-zach-submissions --remote",
+		"migrate:local": "npx wrangler d1 migrations apply estimates-zach-submissions --local",
+		"migrate:create": "npx drizzle-kit generate"
+	},
+	"devDependencies": {
+		"@cloudflare/vitest-pool-workers": "^0.5.32",
+		"@cloudflare/workers-types": "^4.20241230.0",
+		"@types/node": "^22.12.0",
+		"better-sqlite3": "^11.8.1",
+		"drizzle-kit": "^0.28.1",
+		"typescript": "^5.7.2",
+		"vitest": "2.0.5",
+		"wrangler": "^3.105.0"
+	},
+	"dependencies": {
+		"axios": "^1.7.9",
+		"drizzle-orm": "^0.36.4",
+		"drizzle-zod": "^0.5.1",
+		"zod": "^3.23.8"
+	}
 }
