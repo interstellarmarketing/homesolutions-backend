@@ -5,6 +5,10 @@ import { z } from "zod"
  * Includes all fields that can be stored in the database
  */
 export const formSubmissionParser = z.object({
+
+	// Posthog Data
+	posthogPersonId: z.string().optional(),
+
 	// Required contact information
 	streetAddress: z.string().min(5).trim(),
 	city: z.string().min(2).trim(),

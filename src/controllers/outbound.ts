@@ -35,6 +35,7 @@ const API_ENDPOINTS: ApiEndpoints = {
 			affiliate_id: 'Mjc1',
 			campaign_id: 'MjQwNQ==',
 			authorization_token: 'JiUIX1ZB1RlJcKRBqGjN',
+			posthog_person_id: submission.posthogPersonId,
 			first_name: submission.firstName,
 			last_name: submission.lastName,
 			phone: submission.phone,
