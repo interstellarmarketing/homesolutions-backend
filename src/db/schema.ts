@@ -89,7 +89,7 @@ export type SelectFormSubmissions = z.infer<typeof selectFormSubmissions>;
 
 export const formSubmissionsOutbound = sqliteTable('form_submissions_outbound', {
 	id: integer('id').primaryKey({ autoIncrement: true }),
-	posthogPersonId: text('posthog_person_id').references(() => formSubmissions.posthogPersonId),
+	posthogPersonId: text('posthog_person_id'),
 	formSubmissionId: integer('form_submission_id').references(() => formSubmissions.id),
 
 	apiUrl: text('api_url').notNull(),
