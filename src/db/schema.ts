@@ -10,6 +10,9 @@ export const formSubmissions = sqliteTable('form_submissions', {
 	// Primary identification
 	id: integer('id').primaryKey({ autoIncrement: true }),
 
+	// Posthog Data
+	posthogPersonId: text('posthog_person_id'),
+
 	// Contact information
 	streetAddress: text('street_address'),
 	city: text('city'),
@@ -86,6 +89,7 @@ export type SelectFormSubmissions = z.infer<typeof selectFormSubmissions>;
 
 export const formSubmissionsOutbound = sqliteTable('form_submissions_outbound', {
 	id: integer('id').primaryKey({ autoIncrement: true }),
+	posthogPersonId: text('posthog_person_id'),
 	formSubmissionId: integer('form_submission_id').references(() => formSubmissions.id),
 
 	apiUrl: text('api_url').notNull(),
