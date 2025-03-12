@@ -40,9 +40,7 @@ export const formSubmissions = sqliteTable('form_submissions', {
 	utilityBill: integer('utility_bill'), // Monthly utility bill amount in dollars
 
 	// Qualification metrics
-	creditScore: text('credit_score', {
-		enum: ['excellent', 'good', 'fair', 'poor', 'unknown'],
-	}),
+	creditScore: integer('credit_score_above_or_equal_640', { mode: 'boolean' }),
 
 	// Solar-specific information
 	roofShade: text('roof_shade', {
@@ -65,6 +63,9 @@ export const formSubmissions = sqliteTable('form_submissions', {
 	utmContent: text('utm_content'),
 	utmTerm: text('utm_term'),
 	fbclid: text('fbclid'),
+	fbc: text('fbc'),
+	fbp: text('fbp'),
+	userAgent: text('user_agent'),
 	gclid: text('gclid'),
 	wbraid: text('wbraid'), // New tracking parameter
 	gbraid: text('gbraid'), // New tracking parameter
