@@ -39,8 +39,7 @@ export const formSubmissions = sqliteTable('form_submissions', {
 	}),
 	utilityBill: integer('utility_bill'), // Monthly utility bill amount in dollars
 
-	// Qualification metrics
-	creditScore: integer('credit_score_above_or_equal_640', { mode: 'boolean' }),
+	creditScoreAboveOrEqual640: integer('credit_score', { mode: 'boolean' }),
 
 	// Solar-specific information
 	roofShade: text('roof_shade', {
