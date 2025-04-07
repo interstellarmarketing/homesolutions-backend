@@ -100,11 +100,12 @@ export class OutboundController {
 		return true;
 	}
 
-	private async createOutboundEntry(formSubmissionId: number, apiUrl: string, requestBody: any) {
+	private async createOutboundEntry(formSubmissionId: number, apiUrl: string, requestBody: any, posthogPersonId: string | null) {
 		return await this.db
 			.insert(formSubmissionsOutbound)
 			.values({
 				formSubmissionId,
+				posthogPersonId,
 				apiUrl,
 				requestBody,
 				createdAt: new Date(),
@@ -152,7 +153,7 @@ export class OutboundController {
 			const submissionType = (submission.shortTrade?.toLowerCase() || 'solar') as keyof typeof API_ENDPOINTS;
 			const endpoint = API_ENDPOINTS[submissionType];
 
-			const outbound = await this.createOutboundEntry(submissionId, endpoint.url, endpoint.transformData(submission));
+			const outbound = await this.createOutboundEntry(submissionId, endpoint.url, endpoint.transformData(submission), submission.posthogPersonId);
 			console.log({ outbound });
 			const response = await axios({
 				method: 'POST',
