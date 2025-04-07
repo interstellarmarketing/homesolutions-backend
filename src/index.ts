@@ -1,4 +1,4 @@
-import { RpcTarget, WorkerEntrypoint, WorkflowEntrypoint, WorkflowStep, WorkflowEvent } from 'cloudflare:workers';
+import { RpcTarget, WorkerEntrypoint, WorkflowEntrypoint, WorkflowStep, type WorkflowEvent } from 'cloudflare:workers';
 import { uspsZipLookupParser, type UspsZipLookupParser } from './zoddles/usps/uspsLookup';
 import { drizzle, type DrizzleD1Database } from 'drizzle-orm/d1';
 import { formSubmissions } from './db/schema';
@@ -28,6 +28,7 @@ class D1 extends RpcTarget {
 	constructor(env: Env) {
 		super();
 		this.env = env;
+		// @ts-expect-error D1 type mismatch in Cloudflare Workers
 		this.db = drizzle(env.DB, { schema });
 	}
 
