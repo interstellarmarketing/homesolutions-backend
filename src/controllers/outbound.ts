@@ -1,5 +1,5 @@
 import { drizzle } from 'drizzle-orm/d1';
-import { formSubmissionsOutbound, formSubmissions, SelectFormSubmissions } from '../db/schema';
+import { formSubmissionsOutbound, formSubmissions, type SelectFormSubmissions } from '../db/schema';
 import { eq } from 'drizzle-orm';
 import * as schema from '../db/schema';
 import axios from 'axios';
