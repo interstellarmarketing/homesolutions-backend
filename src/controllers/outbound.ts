@@ -85,6 +85,36 @@ const API_ENDPOINTS: ApiEndpoints = {
 			return params.toString();
 		},
 	},
+	siding: {
+		url: 'https://solardirectmarketing.leadspediatrack.com/post.do',
+		headers: {
+			'Content-Type': 'application/x-www-form-urlencoded',
+		},
+		transformData: (submission) => {
+			const params = new URLSearchParams({
+				lp_campaign_id: '67e590deb5206',
+				lp_campaign_key: '9ZnkCfcHmzqVt4DJ3jFR',
+				lp_response: 'JSON',
+				lp_s1: '51Siding',
+				tcpaText:
+					'By submitting my contact information including my telephone number above, I authorize Erie Home, to contact me via telephone calls and/or text messages (SMS), using automated dialing technology for marketing/advertising purposes. No purchase required. Message and data rates may apply.',
+				first_name: submission.firstName,
+				last_name: submission.lastName,
+				email_address: submission.email,
+				phone_home: submission.phone,
+				address: submission.streetAddress,
+				city: submission.city,
+				state: submission.state,
+				zip_code: submission.zipCode,
+				ip_address: submission.ipAddress,
+				repair_or_replace: transformStringToSpaceAndCapitalizeFirstLetter(submission.action),
+				siding_type: transformStringToSpaceAndCapitalizeFirstLetter(submission.roofType),
+				home_type: transformStringToSpaceAndCapitalizeFirstLetter(submission.homeType),
+				trusted_form_cert_id: submission.trustedFormCertUrl,
+			});
+			return params.toString();
+		},
+	},
 };
 
 export class OutboundController {
