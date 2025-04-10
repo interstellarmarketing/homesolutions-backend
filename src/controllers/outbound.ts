@@ -66,7 +66,7 @@ const API_ENDPOINTS: ApiEndpoints = {
 				lp_campaign_key: 'VC4vnr9RNLp7t6MZbhJm',
 				lp_response: 'JSON',
 				lp_s1: '51R',
-				tcpaText:
+				tcpa_text:
 					'By submitting my contact information including my telephone number above, I authorize Erie Home, to contact me via telephone calls and/or text messages (SMS), using automated dialing technology for marketing/advertising purposes. No purchase required. Message and data rates may apply.',
 				first_name: submission.firstName,
 				last_name: submission.lastName,
@@ -81,6 +81,7 @@ const API_ENDPOINTS: ApiEndpoints = {
 				roof_type: transformStringToSpaceAndCapitalizeFirstLetter(submission.roofType),
 				home_type: transformStringToSpaceAndCapitalizeFirstLetter(submission.homeType),
 				trusted_form_cert_id: submission.trustedFormCertUrl,
+				landing_page: submission.landingPage,
 			});
 			return params.toString();
 		},
@@ -96,8 +97,8 @@ const API_ENDPOINTS: ApiEndpoints = {
 				lp_campaign_key: '9ZnkCfcHmzqVt4DJ3jFR',
 				lp_response: 'JSON',
 				lp_s1: '51Siding',
-				tcpaText:
-					'By submitting my contact information including my telephone number above, I authorize Erie Home, to contact me via telephone calls and/or text messages (SMS), using automated dialing technology for marketing/advertising purposes. No purchase required. Message and data rates may apply.',
+				tcpa_text:
+					'By submitting my contact information including my telephone number above, I authorize chosen affiliates to contact me via telephone calls and/or text messages (SMS), using automated dialing technology for marketing/advertising purposes. No purchase required. Message and data rates may apply.',
 				first_name: submission.firstName,
 				last_name: submission.lastName,
 				email_address: submission.email,
@@ -111,6 +112,7 @@ const API_ENDPOINTS: ApiEndpoints = {
 				siding_type: transformStringToSpaceAndCapitalizeFirstLetter(submission.roofType),
 				home_type: transformStringToSpaceAndCapitalizeFirstLetter(submission.homeType),
 				trusted_form_cert_id: submission.trustedFormCertUrl,
+				landing_page: submission.landingPage,
 			});
 			return params.toString();
 		},
