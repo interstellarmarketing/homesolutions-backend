@@ -66,8 +66,7 @@ const API_ENDPOINTS: ApiEndpoints = {
 				lp_campaign_key: 'VC4vnr9RNLp7t6MZbhJm',
 				lp_response: 'JSON',
 				lp_s1: '51R',
-				tcpa_text:
-					'By submitting my contact information including my telephone number above, I authorize Erie Home, to contact me via telephone calls and/or text messages (SMS), using automated dialing technology for marketing/advertising purposes. No purchase required. Message and data rates may apply.',
+				tcpa_text: 'By clicking Submit I am providing my ESIGN signature and consent for Local Roofing Installers and its affiliates to contact me at the number I entered regarding this request and for marketing purposes, including through phone calls or text by means of automated technology, SMS/MMS, and prerecorded messages. I acknowledge my consent is not required for purchase. Message and data rates may apply. I also agree to be bound by the Privacy Policy.',
 				first_name: submission.firstName,
 				last_name: submission.lastName,
 				email_address: submission.email,
@@ -98,7 +97,7 @@ const API_ENDPOINTS: ApiEndpoints = {
 				lp_response: 'JSON',
 				lp_s1: '51Siding',
 				tcpa_text:
-					'By submitting my contact information including my telephone number above, I authorize chosen affiliates to contact me via telephone calls and/or text messages (SMS), using automated dialing technology for marketing/advertising purposes. No purchase required. Message and data rates may apply.',
+					'By clicking Submit I am providing my ESIGN signature and consent for Local Siding Installers and its affiliates to contact me at the number I entered regarding this request and for marketing purposes, including through phone calls or text by means of automated technology, SMS/MMS, and prerecorded messages. I acknowledge my consent is not required for purchase. Message and data rates may apply. I also agree to be bound by the Privacy Policy.',
 				first_name: submission.firstName,
 				last_name: submission.lastName,
 				email_address: submission.email,
@@ -108,7 +107,7 @@ const API_ENDPOINTS: ApiEndpoints = {
 				state: submission.state,
 				zip_code: submission.zipCode,
 				ip_address: submission.ipAddress,
-				repair_or_replace: transformStringToSpaceAndCapitalizeFirstLetter(submission.action),
+				repair_replace: transformStringToSpaceAndCapitalizeFirstLetter(submission.action),
 				siding_type: transformStringToSpaceAndCapitalizeFirstLetter(submission.roofType),
 				home_type: transformStringToSpaceAndCapitalizeFirstLetter(submission.homeType),
 				trusted_form_cert_id: submission.trustedFormCertUrl,

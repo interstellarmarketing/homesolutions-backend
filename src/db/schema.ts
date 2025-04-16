@@ -41,6 +41,8 @@ export const formSubmissions = sqliteTable('form_submissions', {
 
 	creditScoreAboveOrEqual640: integer('credit_score', { mode: 'boolean' }),
 
+	landingPage: text('landing_page'),
+
 	// Solar-specific information
 	roofShade: text('roof_shade', {
 		enum: ['none', 'partial', 'full'],

@@ -57,6 +57,7 @@ export const formSubmissionParser = z.object({
 	ssn: z.string().optional(),
 	trustedFormCertUrl: z.string().optional(),
 	trustedFormPingUrl: z.string().optional(),
+	landingPage: z.string().optional(),
 })
 
 export type FormSubmissionType = z.infer<typeof formSubmissionParser>
