@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "69042fb5-708a-43f2-9b0b-7a3c29d86fa3",
+  "id": "b6a45ac0-da3e-46f8-b22f-e8a74524dcf1",
   "prevId": "0669c886-3b1f-43a9-b2f0-41f83e3928f7",
   "tables": {
     "form_submissions": {
@@ -133,9 +133,16 @@
           "notNull": false,
           "autoincrement": false
         },
-        "credit_score_above_or_equal_640": {
-          "name": "credit_score_above_or_equal_640",
+        "credit_score": {
+          "name": "credit_score",
           "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "landing_page": {
+          "name": "landing_page",
+          "type": "text",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
