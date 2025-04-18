@@ -2,6 +2,7 @@ name = "be-rpc-estimates"
 main = "src/index.ts"
 compatibility_date = "2024-11-27"
 compatibility_flags = ["nodejs_compat"]
+account_id = "0e00c1b3ccd3589146e3d5bc2ff2978e"
 
 # KV namespace configuration
 [[kv_namespaces]]
