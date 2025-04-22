@@ -66,7 +66,7 @@ const API_ENDPOINTS: ApiEndpoints = {
 				lp_campaign_key: 'VC4vnr9RNLp7t6MZbhJm',
 				lp_response: 'JSON',
 				lp_s1: '51R',
-				tcpa_text: 'By clicking Submit I am providing my ESIGN signature and consent for Local Roofing Installers and its affiliates to contact me at the number I entered regarding this request and for marketing purposes, including through phone calls or text by means of automated technology, SMS/MMS, and prerecorded messages. I acknowledge my consent is not required for purchase. Message and data rates may apply. I also agree to be bound by the Privacy Policy.',
+				tcpa_text: 'By clicking Next Step I am providing my ESIGN signature and consent for Local Roofing Installers and its affiliates to contact me at the number I entered regarding this request and for marketing purposes, including through phone calls or text by means of automated technology, SMS/MMS, and prerecorded messages. I acknowledge my consent is not required for purchase. Message and data rates may apply. I also agree to be bound by the Privacy Policy.',
 				first_name: submission.firstName,
 				last_name: submission.lastName,
 				email_address: submission.email,
@@ -97,7 +97,7 @@ const API_ENDPOINTS: ApiEndpoints = {
 				lp_response: 'JSON',
 				lp_s1: '51Siding',
 				tcpa_text:
-					'By clicking Submit I am providing my ESIGN signature and consent for Local Siding Installers and its affiliates to contact me at the number I entered regarding this request and for marketing purposes, including through phone calls or text by means of automated technology, SMS/MMS, and prerecorded messages. I acknowledge my consent is not required for purchase. Message and data rates may apply. I also agree to be bound by the Privacy Policy.',
+					'By clicking Next Step I am providing my ESIGN signature and consent for Local Siding Installers and its affiliates to contact me at the number I entered regarding this request and for marketing purposes, including through phone calls or text by means of automated technology, SMS/MMS, and prerecorded messages. I acknowledge my consent is not required for purchase. Message and data rates may apply. I also agree to be bound by the Privacy Policy.',
 				first_name: submission.firstName,
 				last_name: submission.lastName,
 				email_address: submission.email,
