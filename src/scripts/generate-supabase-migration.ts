@@ -101,7 +101,14 @@ async function main() {
  */
 function transformForSupabase(submissions: SelectFormSubmissions[], outboundSubmissions: SelectFormSubmissionsOutbound[]): PublicLeadsInsertSchema[] {
 	return submissions.map(submission => {
+		const outboundSubmission = outboundSubmissions.find(os => os.formSubmissionId === submission.id);
 		let estimateOptions = {};
+		let payout_amount = 0;
+		try {
+			payout_amount = JSON.parse(outboundSubmission?.responseBody ?? '{}').price;
+		} catch (error) {
+			console.error('Error parsing payout:', error);
+		}
 		switch (submission.estimateType) {
 			case 'roofing':
 				estimateOptions = {
@@ -122,7 +129,6 @@ function transformForSupabase(submissions: SelectFormSubmissions[], outboundSubm
 				};
 				break;
 		}
-		const outboundSubmission = outboundSubmissions.find(os => os.formSubmissionId === submission.id);
 		return {
 			action: submission.action,
 			buyer_id: null,
@@ -141,7 +147,7 @@ function transformForSupabase(submissions: SelectFormSubmissions[], outboundSubm
 			gclid: submission.gclid,
 			ip_address: submission.ipAddress,
 			is_homeowner: (submission.isHomeowner as any) === 1 || (submission.isHomeowner as any) === '1' || (submission.isHomeowner as any) === '1.0',
-			landing_page: submission.landingPage,
+			landing_page: submission.landingPage === 'landing_page' ? null : submission.landingPage,
 			last_name: submission.lastName,
 			outbound_api_request_body: outboundSubmission?.requestBody,
 			outbound_api_request_url: outboundSubmission?.apiUrl,
@@ -150,7 +156,6 @@ function transformForSupabase(submissions: SelectFormSubmissions[], outboundSubm
 			outbound_api_response_message: outboundSubmission?.responseMessage,
 			outbound_api_response_status: outboundSubmission?.status,
 			outbound_api_response_status_code: outboundSubmission?.statusCode,
-			payout_amount: null,
 			phone: submission.phone,
 			posthog_person_id: submission.posthogPersonId ?? '',
 			property_type: submission.homeType,
@@ -172,6 +177,7 @@ function transformForSupabase(submissions: SelectFormSubmissions[], outboundSubm
 			utm_term: submission.utmTerm,
 			wbraid: submission.wbraid,
 			zip_code: submission.zipCode,
+			payout_amount,
 		};
 	});
 }
