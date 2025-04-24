@@ -159,7 +159,6 @@ function transformForSupabase(submissions: SelectFormSubmissions[], outboundSubm
 			phone: submission.phone,
 			posthog_person_id: submission.posthogPersonId ?? '',
 			property_type: submission.homeType,
-			source: submission.source,
 			ssn: submission.ssn,
 			state: submission.state,
 			status: 'submitted',
